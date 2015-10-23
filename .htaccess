@@ -1,0 +1,6 @@
+#изменение кодировки и открытия проекта в utf-8
+AddDefaultCharset UTF-8 
+
+php_flag display_error on
+php_value error_reporting 32767
+
