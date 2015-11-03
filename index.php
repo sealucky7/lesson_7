@@ -40,8 +40,7 @@ if (isset($_POST['main_form_submit'])) {
 				}
                                 $ads_db['db'][$id][$key] = trim(htmlspecialchars($value));
                         }
-			$ads_db = serialize($ads_db);
-        setcookie('ads_db', $ads_db, time()+3600*24*7);		
+			save_all($ads_db);		
 	header("Location: index.php");
 		exit;
 }
@@ -54,12 +53,18 @@ if (isset($_GET['delete'])) {
     header("Location: index.php");
 exit;
 }	
+//функция сохранения всего массива объявления 
+function save_all($ads_db){
+    $ads_db = serialize($ads_db);
+    setcookie('ads_db', $ads_db, time()+3600*24*7);
+}
+
 
 // Функция удаления объявления
 function delete_item($get_value, $ads_db) {
 	unset($ads_db['db'][$get_value]);
-    $ads_db = serialize($ads_db);
-        setcookie('ads_db', $ads_db, time()+3600*24*7);
+        save_all($ads_db);
+    
 }
 
 // Вывод объявления
@@ -154,11 +159,12 @@ if (isset($_GET['show'])){
 			<tr>
 				<td>Цена</td>
 				<td><input type="text" maxlength="9" value="<?php echo (isset($change_id)) ? $changeAd['price'] : '0';?>" name="price" >&nbsp;руб.</td>
+                                <td><input type="hidden" name="hidden_id" value="<?php if(isset($change_id)) echo $change_id; ?>"></td>
       		</tr>
 			<tr>
 				<td></td>
 				<td><input type="submit" value="<?php if(!isset($change_id)) {echo 'Подать объявление';}
-													  else { echo 'Сохранить'; $_SESSION['change_id']=$change_id;} ?>" name="main_form_submit" >
+                                                                                                          else { echo 'Сохранить'; }?>" name="main_form_submit" >
 				</td>
 			</tr>
                      
