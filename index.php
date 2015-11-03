@@ -165,7 +165,7 @@ if (isset($_GET['show'])){
 				<td></td>
 				<td><input type="submit" value="<?php if(!isset($change_id)) {echo 'Подать объявление';}
                                                                                                           else { echo 'Сохранить'; }?>" name="main_form_submit" >
-				</td>
+				</td> 
 			</tr>
                      
 	</table>
