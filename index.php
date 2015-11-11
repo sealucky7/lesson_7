@@ -1,6 +1,6 @@
 <?php
 
-session_start();
+require_once 'function.php';
 
 $location_id = array(641780 => 'Новосибирск', 641490 => 'Барабинск', 641510=>'Бердск', 641600=>'Искитим', 641630=>'Колывань', 641680=>'Краснообск', 641710=>'Куйбышев', 641760=>'Мошково', 641790=>'Обь', 641800=>'Ордынское', 641970=>'Черепаново');
 $categories = array(
@@ -19,30 +19,31 @@ $categories = array(
 if (isset($_COOKIE['ads_db'])){
 	$ads_db = unserialize($_COOKIE['ads_db']);
 }
-if (isset($_POST['main_form_submit'])) { 
-	$submit=$_POST['main_form_submit'];
-		switch ($submit) { 
-			case 'Подать объявление' :
-				$id = (!isset($ads_db)) ? 0 : ($ads_db['max_ad']+1); 
-				$ads_db['db'][$id]['date'] = date('d.m.Y H:i:s');
-					$ads_db['max_ad']=$id; 
-			break;
-			case 'Сохранить' :
-				$id = $_SESSION['change_id']; 
-				unset($_SESSION['change_id'], $ads_db['db'][$id]['no_mails']);
-				session_destroy();
-			break;
-		}
-		
-			foreach ($_POST as $key => $value) {
-				if ($key=='main_form_submit'){
-					continue;
-				}
-                                $ads_db['db'][$id][$key] = trim(htmlspecialchars($value));
-                        }
-			save_all($ads_db);		
-	header("Location: index.php");
-		exit;
+if (isset($_POST['main_form_submit'])) {
+   
+    $submit = $_POST['main_form_submit'];
+    foreach ($_POST as $key => $value) {
+        if ($key == 'main_form_submit') {
+            continue;
+        }
+        $_POST[$key] = trim(htmlspecialchars($value));
+    }
+    switch ($submit) {
+        case 'Подать объявление' :
+            $_POST['date'] = date('d.m.Y H:i:s');
+            $ads_db['db'][] = $_POST;
+            break;
+        case 'Сохранить' :
+            $id = $_POST['hidden_id'];
+            $_POST['date'] = $ads_db['db'][$id]['date'];
+            $ads_db['db'][$id] = $_POST;
+            break;
+    }
+
+    save_all($ads_db);
+    header("Location: index.php");
+    
+    exit;
 }
 
 
@@ -53,127 +54,21 @@ if (isset($_GET['delete'])) {
     header("Location: index.php");
 exit;
 }	
-//функция сохранения всего массива объявления 
-function save_all($ads_db){
-    $ads_db = serialize($ads_db);
-    setcookie('ads_db', $ads_db, time()+3600*24*7);
-}
-
-
-// Функция удаления объявления
-function delete_item($get_value, $ads_db) {
-	unset($ads_db['db'][$get_value]);
-        save_all($ads_db);
-    
-}
 
 // Вывод объявления
 if (isset($_GET['show'])){
 	$change_id=$_GET['show'];
 	$changeAd=$ads_db['db'][$change_id];
-		unset($_SESSION['show']);
+		//unset($_SESSION['show']);
 }
 //print_r($_SESSION);
 ?>
-<form  method="post"  >
-    <table>
-			<tr>
-				<td></td>
-				<td><input type="radio" <?php echo (!isset($change_id) || $changeAd['private']==1) ? 'checked=""' : '';?> value="1" name="private">Частное лицо 
-				    <input type="radio" <?php echo (isset($change_id) && $changeAd['private']==0) ? 'checked=""' : '';?> value="0" name="private">Компания
-				</td>
-			</tr>
-			<tr>
-				<td>Ваше имя</td>    
-				<td><input type="text" maxlength="40" value="<?php echo (isset($change_id)) ? $changeAd['firstname'] : '';?>" name="firstname" ></td>
-			</tr>
-			<tr>
-				<td>Электронная почта</td>
-				<td><input type="email" value="<?php echo (isset($change_id)) ? $changeAd['email'] : '';?>" name="email" ></td>
-        	</tr>
-			<tr>
-				<td></td>
-				<td><input type="checkbox" <?php echo isset($changeAd['no_mails']) ? 'checked=""' : '';?> value="" name="no_mails" >Я не хочу получать вопросы по объявлению по e-mail</td>
-    
-			</tr>
-			<tr>
-				<td>Номер телефона</td>
-				<td><input type="tel"  value="<?php echo (isset($change_id)) ? $changeAd['phone'] : '';?>" name="phone" ></td>
-     
-			</tr>
-			<tr>
-				<td>Город</td>
-				<td>
-					<select title="Выберите Ваш город" name="location_id" > 
-						<option value="">-- Выберите город --</option>
-						<option disabled="disabled">-- Города --</option>
-						<?php
-							$location_sel=641780;
-							foreach ($location_id as $id => $location) {
-								if (!isset($change_id) && $id ==$location_sel ){ ?>
-									<option <?php echo 'selected=""';?> data-coords=",," value="<?php echo $id;?>"><?php echo $location;?></option>
-								<?php
-								}
-								else {?>
-									<option <?php echo (isset($change_id) && $changeAd['location_id']==$id) ? 'selected=""' : '';?> data-coords=",," value="<?php echo $id;?>"><?php echo $location;?></option>   
-						
-								<?php
-								}
-							}	
-								?>
-					</select>
-				</td>
-      
-			</tr>
-			<tr>
-				<td>Категория</td>
-				<td>
-					<select title="Выберите категорию объявления" name="category_id"  required>
-						<option value="">-- Выберите категорию --</option>
-						<?php
-								foreach ($categories as $id => $category) {
-                                                                ?>	
-                                                <optgroup label="<?=$id?>">
-							<?php foreach ($category as $key => $value){
-                                                            ?>
-                                                    <option <?php echo (isset($change_id) && $changeAd['category_id']==$key) ? 'selected=""' : '';?> value="<?php echo $key;?>">  
-                                                                <?php echo $value;?>
-                                                    </option>
-								<?php }?>
-							</optgroup>
-                                                        <?php
-								}
-								?>
 
-					</select>
-				</td>	
-			</tr>
-			<tr>
-				<td>Название объявления</td>
-				<td><input type="text" maxlength="50"  value="<?php echo (isset($change_id)) ? $changeAd['title'] : '';?>" name="title" required></td>
-    		</tr>
-			<tr>
-				<td>Описание объявления</td>
-				<td><textarea maxlength="3000"  name="description" ><?php echo (isset($change_id)) ? $changeAd['description'] : '';?></textarea></td>
-      		</tr>
-			<tr>
-				<td>Цена</td>
-				<td><input type="text" maxlength="9" value="<?php echo (isset($change_id)) ? $changeAd['price'] : '0';?>" name="price" >&nbsp;руб.</td>
-                                <td><input type="hidden" name="hidden_id" value="<?php if(isset($change_id)) echo $change_id; ?>"></td>
-      		</tr>
-			<tr>
-				<td></td>
-				<td><input type="submit" value="<?php if(!isset($change_id)) {echo 'Подать объявление';}
-                                                                                                          else { echo 'Сохранить'; }?>" name="main_form_submit" >
-				</td> 
-			</tr>
-                     
-	</table>
-</form>
-
-<div style="border-bottom: 2px solid #000; width: 500px; height: 2px; display: block; margin-bottom: 20px;"></div>
 
 <?php
+
+require_once 'table.php';
+
 // Вывод списка 
 if (isset($ads_db['db'])){
     	foreach ($ads_db['db'] as $id => $item){

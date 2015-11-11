@@ -53,3 +53,15 @@ category_id = '11';
 title = 'AUDI A3';
 description = 'sdadadasda';
 price = '66655855';
+[5] 
+date = 11.11.2015 19:21:52;
+private = '1';
+firstname = 'dasdasd';
+email = 'test@test.ru';
+phone = 'dsadasdasd';
+location_id = '641510';
+category_id = '9';
+title = 'asdads';
+description = 'vcxvcxvxc';
+price = '56565';
+hidden_id = '';
