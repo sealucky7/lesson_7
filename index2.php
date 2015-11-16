@@ -15,13 +15,11 @@ $categories = array(
     'Животные'=> array( 89 => 'Собаки', 90 => 'Кошки', 91 => 'Птицы', 92 => 'Аквариум', 93 => 'Другие животные', 94 => 'Товары для животных' ),
     'Для бизнеса'=> array( 116 => 'Готовый бизнес', 40 => 'Оборудование для бизнеса'));
 
-session_start();
-
 define('ADD_DB', 'add_db.txt');
 define('ADD_COUNT', 'add_count.txt');
 
 if (file_exists(ADD_DB)){
-    $add_db = parse_ini_file(ADD_DB, true);
+    $add_db = unserialize(ADD_DB, true);
 }
      
 // Переносим данные из $_POST в файл
@@ -64,10 +62,10 @@ exit;
 }	
 
 // Функция удаления объявления
-function delete_item($id, $array, $filename) {
-	unset($array[$id]);
-		convert_array_to_file ($array, $filename);
-}
+//function delete_item($id, $array, $filename) {
+//	unset($array[$id]);
+//	convert_array_to_file ($array, $filename);
+//}
 
 // Вывод объявления
 if (isset($_GET['show'])){

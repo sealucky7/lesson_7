@@ -81,7 +81,7 @@
       		</tr>
 			<tr>
 				<td>Цена</td>
-				<td><input type="text" maxlength="9" value="<?php echo (isset($change_id)) ? $changeAd['price'] : '0';?>" name="price" >&nbsp;руб.</td>
+                                <td><input type="text" pattern="^[ 0-9.,]+$" maxlength="9" value="<?php echo (isset($change_id)) ? $changeAd['price'] : '0';?>" name="price" >&nbsp;руб.</td>
                                 <td><input type="hidden" name="hidden_id" value="<?php if(isset($change_id)) echo $change_id; ?>"></td>
       		</tr>
 			<tr>
