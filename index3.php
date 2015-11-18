@@ -13,76 +13,68 @@ $categories = array(
     'Бытовая электроника'=> array( 32 => 'Аудио и видео', 97 => 'Игры, приставки и программы', 31 => 'Настольные компьютеры', 98 => 'Ноутбуки', 99 => 'Оргтехника и расходники', 96 => 'Планшеты и электронные книги', 84 => 'Телефоны', 101 => 'Товары для компьютера', 105 => 'Фототехника' ),
     'Хобби и отдых'=> array( 33 => 'Билеты и путешествия', 34 => 'Велосипеды', 83 => 'Книги и журналы', 36 => 'Коллекционирование', 38 => 'Музыкальные инструменты', 102 => 'Охота и рыбалка', 39 => 'Спорт и отдых', 103 => 'Знакомства' ),
     'Животные'=> array( 89 => 'Собаки', 90 => 'Кошки', 91 => 'Птицы', 92 => 'Аквариум', 93 => 'Другие животные', 94 => 'Товары для животных' ),
-    'Для бизнеса'=> array( 116 => 'Готовый бизнес', 40 => 'Оборудование для бизнеса'));
+    'Для бизнеса'=> array( 116 => 'Готовый бизнес', 40 => 'Оборудование для бизнеса')
+);
 
-define('ADD_DB', 'add_db.txt');
-define('ADD_COUNT', 'add_count.txt');
+define('ADS_DB', 'ads_db.txt');
 
-if (file_exists(ADD_DB)){
-    $add_db = unserialize(ADD_DB, true);
-}
-     
-// Переносим данные из $_POST в файл
-if (isset($_POST['main_form_submit'])) { 
-	$submit=$_POST['main_form_submit'];
-		switch ($submit) { 
-			case 'Подать объявление' :
-                            if(!file_exists(ADD_DB)){ 
-				$id = 0 ;
-                            }
-                            else { $id = file_get_contents(ADD_COUNT); 
-				$id++; 
-                            }
-                            if(!file_put_contents(ADD_COUNT, $id)) { exit('Ошибка записи файла'); }
-                                $date = date('d.m.Y H:i:s'); 
-			addContents ($id, $date, ADD_DB);
-			break;
-			case 'Сохранить изменения' :
-                            $id = $_POST['hidden_id'];
-                            foreach ($_POST as $key => $value) {
-				if ($key=='main_form_submit'){
-					continue;
-				}
-					$add_db[$id][$key] = trim(htmlspecialchars($value));
-                            }
-			convert_array_to_file ($add_db, ADD_DB);// Преобразование массива в файл
-			break;
-		}	
-	header("Location: index2.php");
-		exit;
+$ads_db = file_get_serialize_contents (ADS_DB);
+
+if (isset($_POST['main_form_submit'])) {
+  $submit = $_POST['main_form_submit'];
+    foreach ($_POST as $key => $value) {
+        if ($key == 'main_form_submit') {
+            continue;
+        }
+        $_POST[$key] = trim(htmlspecialchars($value));
+    }
+    switch ($submit) {
+        case 'Подать объявление' :
+            $_POST['date'] = date('d.m.Y H:i:s');
+            $ads_db['db'][] = $_POST;
+            break;
+        case 'Сохранить' :
+            $id = $_POST['hidden_id'];
+            $_POST['date'] = $ads_db['db'][$id]['date'];
+            $ads_db['db'][$id] = $_POST;
+            break;
+    }
+
+    save_all($ads_db);
+    file_put_serialize_contents(ADS_DB, $ads_db); // запись массива в файл
+    header("Location: index3.php");
+    
+    exit;
 }
 
 
 // Обработка команд на удаление
 if (isset($_GET['delete'])) {
     $del = $_GET['delete'];
-   delete_item($del, $add_db, ADD_DB);
-    header("Location: index2.php");
+   delete_item($del, $ads_db);
+    header("Location: index3.php");
 exit;
 }	
-
-// Функция удаления объявления
-//function delete_item($id, $array, $filename) {
-//	unset($array[$id]);
-//	convert_array_to_file ($array, $filename);
-//}
 
 // Вывод объявления
 if (isset($_GET['show'])){
 	$change_id=$_GET['show'];
-	$changeAd=$add_db['db'][$change_id];
+	$changeAd=$ads_db['db'][$change_id];
+		//unset($_SESSION['show']);
 }
 
 ?>
+
+
 <?php
 
 require_once 'table.php';
 
 // Вывод списка 
-if (isset($add_db['db'])){
-    	foreach ($add_db['db'] as $id => $item){
+if (isset($ads_db['db'])){
+    	foreach ($ads_db['db'] as $id => $item){
             
-		echo '<p>'. $item['date'] .' | ' . '<a href="index2.php?show=' . $id . '">' . $item['title'] . '</a>' .' | ' . number_format($item['price'], 2, '.', '') . ' руб.' . ' | ' . $item['firstname'] .' | ' . '<a href="index2.php?delete=' . $id . '">Удалить</a>' . "</p>\n\r";
+		echo '<p>'. $item['date'] .' | ' . '<a href="index3.php?show=' . $id . '">' . $item['title'] . '</a>' .' | ' . number_format($item['price'], 2, '.', '') . ' руб.' . ' | ' . $item['firstname'] .' | ' . '<a href="index3.php?delete=' . $id . '">Удалить</a>' . "</p>\n\r";
              
 	}
 }
